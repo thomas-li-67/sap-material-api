@@ -109,7 +109,7 @@ material_detail: payload."BAPI_MATERIAL_GET_DETAIL".export
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
-salesOrders: payload."Z_DQZLIWM_MM_KCSJ".tables."T_DATA".*row map {
+T_DATA: payload."Z_DQZLIWM_MM_KCSJ".tables."T_DATA".*row map {
 	($$):$
 } ]]></dw:set-payload>
         </dw:transform-message>
