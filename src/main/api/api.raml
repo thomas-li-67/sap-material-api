@@ -1,0 +1,106 @@
+#%RAML 0.8
+title: sap-material-api
+
+version: v1
+baseUri: http://localhost:8088/sap-material-api
+    
+/material_get_detail:
+  get:  
+    description: "获取物料信息 - Get detail data of a meterial "
+    queryParameters:
+      material:
+        description: "物料号 -  material no"
+      plant: 
+        description: "工厂 - plant"  
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "material_detail": {
+                  "MATERIALPLANTDATA": {
+                    "PUR_GROUP": "200",
+                    "ISSUE_UNIT": ""
+                  },
+                  "MATERIALVALUATIONDATA": {
+                    "PRICE_CTRL": "",
+                    "MOVING_PR": "0.0000",
+                    "STD_PRICE": "0.0000",
+                    "PRICE_UNIT": "0",
+                    "CURRENCY": "",
+                    "CURRENCY_ISO": ""
+                  },
+                  "MATERIAL_GENERAL_DATA": {
+                    "MATL_DESC": "聚氯乙烯树脂\\SG7\\袋装(kg)\\25\\合格",
+                    "OLD_MAT_NO": "",
+                    "MATL_TYPE": "ZPC2",
+                    "IND_SECTOR": "C",
+                    "DIVISION": "13",
+                    "MATL_GROUP": "160497",
+                    "PROD_HIER": "010001000100000001",
+                    "BASIC_MATL": "",
+                    "STD_DESCR": "",
+                    "LAB_DESIGN": "",
+                    "PROD_MEMO": "",
+                    "PAGEFORMAT": "",
+                    "CONTAINER": "",
+                    "STOR_CONDS": "",
+                    "TEMP_CONDS": "",
+                    "BASE_UOM": "TO",
+                    "EAN_UPC": "",
+                    "EAN_CAT": "",
+                    "SIZE_DIM": "",
+                    "GROSS_WT": "0.000",
+                    "NET_WEIGHT": "0.000",
+                    "UNIT_OF_WT": "KG",
+                    "VOLUME": "0.000",
+                    "VOLUMEUNIT": "",
+                    "LENGTH": "0.000",
+                    "WIDTH": "0.000",
+                    "HEIGHT": "0.000",
+                    "UNIT_DIM": "",
+                    "MANU_MAT": "",
+                    "MFR_NO": "",
+                    "BASE_UOM_ISO": "TNE",
+                    "UNIT_OF_WT_ISO": "KGM",
+                    "VOLUMEUNIT_ISO": "",
+                    "UNIT_DIM_ISO": "",
+                    "CREATED_ON": "2012-10-20",
+                    "CREATED_BY": "ZPI_RFC_P41",
+                    "LAST_CHNGE": "2015-12-01",
+                    "CHANGED_BY": "JIEXIULI",
+                    "MATL_CAT": "",
+                    "EMPTIESBOM": "",
+                    "BASIC_MATL_NEW": ""
+                  },
+                  "RETURN": {
+                    "TYPE": "S",
+                    "CODE": "",
+                    "MESSAGE": "",
+                    "LOG_NO": "",
+                    "LOG_MSG_NO": "000000",
+                    "MESSAGE_V1": "",
+                    "MESSAGE_V2": "",
+                    "MESSAGE_V3": "",
+                    "MESSAGE_V4": ""
+                  }
+                }
+              }
+                 
+/dqzl_kcsj:
+  get:  
+    description: "获取库存信息 -  "
+    queryParameters:
+      material:
+        description: "物料号 -  material no"
+      plant: 
+        description: "工厂 - plant"  
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+              }              
+              

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:context="http://www.springframework.org/schema/context"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+
+    <http:listener-config name="httpListenerConfig" host="0.0.0.0" port="${http.port}" doc:name="HTTP Listener Configuration"/>
+    <apikit:config name="apiConfig" raml="api.raml" consoleEnabled="false" doc:name="Router" keepRamlBaseUri="false">
+        <apikit:flow-mapping resource="/material_get_detail" action="get" flow-ref="get:/material_get_detail"/>
+        <apikit:flow-mapping resource="/dqzl_kcsj" action="get" flow-ref="get:/dqzl_kcsj"/>
+    </apikit:config>
+
+    <context:property-placeholder location="api.properties" />
+    <sap:connector name="CHEM-SAP-ERP-CONN" validateConnections="true" doc:name="SAP" jcoAsHost="${SAP.Host}" jcoClient="${SAP.Client}" jcoLang="${SAP.LoginLanguage}" jcoPasswd="${SAP.Password}" jcoSysnr="${SAP.SystemNumber}" jcoUser="${SAP.User}"/>
+
+    <flow name="api-main">
+        <http:listener config-ref="httpListenerConfig" path="/api/*" doc:name="HTTP"/>
+        <apikit:router config-ref="apiConfig" doc:name="APIkit Router"/>
+        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+
+    <flow name="api-console">
+        <http:listener config-ref="httpListenerConfig" path="/console/*" doc:name="HTTP"/>
+        <apikit:console config-ref="apiConfig" doc:name="APIkit Console"/>
+    </flow>
+
+    <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+    <flow name="get:/material_get_detail">
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+---
+{
+	"BAPI_MATERIAL_GET_DETAIL": {
+		import: {
+			"MATERIAL": inboundProperties."http.query.params"."material",
+			"PLANT": inboundProperties."http.query.params"."plant"
+		}
+		
+	}
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <sap:outbound-endpoint exchange-pattern="request-response" connector-ref="CHEM-SAP-ERP-CONN" outputXml="true" responseTimeout="10000" doc:name="MATERIAL_GET_DETAIL" type="function" functionName="BAPI_MATERIAL_GET_DETAIL"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+material_detail: payload."BAPI_MATERIAL_GET_DETAIL".export
+
+]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="get:/dqzl_kcsj">
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+---
+{
+	"Z_DQZLIWM_MM_KCSJ": {
+		import: {
+
+			"I_MATNR": inboundProperties."http.query.params"."material",
+
+			"I_WERKS": inboundProperties."http.query.params"."plant"
+
+		}
+		
+	}
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <sap:outbound-endpoint connector-ref="CHEM-SAP-ERP-CONN" type="function" functionName="Z_DQZLIWM_MM_KCSJ" outputXml="true" responseTimeout="10000" doc:name="DQZL_KCSJ" exchange-pattern="request-response"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+salesOrders: payload."Z_DQZLIWM_MM_KCSJ".tables."T_DATA".*row map {
+	($$):$
+} ]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+</mule>
